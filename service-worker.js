@@ -1,4 +1,4 @@
-var CACHE_NAME = "fivefold-cache-v2";
+var CACHE_NAME = "fivefold-cache-v3";
 var CACHE_FILES = [
   "./",
   "./index.html",
