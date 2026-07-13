@@ -160,6 +160,59 @@ main {
   margin-top: 0.5rem;
 }
 
+.times-panel {
+  margin: 1rem auto 0;
+  max-width: 320px;
+  text-align: center;
+}
+
+.times-status {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  margin: 0 0 0.5rem;
+}
+
+.manual-location-form {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.manual-location-form input {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  width: 110px;
+}
+
+.manual-location-form input:focus { outline: 1.5px solid var(--gold); }
+
+.manual-location-form button {
+  background: var(--gold);
+  border: none;
+  color: var(--night);
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+.node-time {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--gold);
+  text-anchor: middle;
+}
+
 /* ---------- Stats ---------- */
 
 .stats {
