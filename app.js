@@ -177,6 +177,12 @@
       label.textContent = p.name;
       g.appendChild(label);
 
+      var timeLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      timeLabel.setAttribute("class", "node-time");
+      timeLabel.setAttribute("x", p.x);
+      timeLabel.setAttribute("y", p.y < 100 ? p.y - 32 : p.y + 36);
+      g.appendChild(timeLabel);
+
       g.addEventListener("click", function () { cyclePrayer(p.id); });
       nodesGroup.appendChild(g);
     });
@@ -336,6 +342,152 @@
     renderHabits();
   }
 
+  // ---------- prayer times (GPS with manual fallback) ----------
+
+  var TIMES_METHOD = 3; // Muslim World League
+  var prayerTimes = null;
+
+  function loadCachedTimes() {
+    try {
+      var raw = JSON.parse(localStorage.getItem("fivefold-times"));
+      if (raw && raw.date === dateStr(0)) return raw.timings;
+      return null;
+    } catch (e) { return null; }
+  }
+
+  function cacheTimes(timings) {
+    try {
+      localStorage.setItem("fivefold-times", JSON.stringify({ date: dateStr(0), timings: timings }));
+    } catch (e) { /* ignore */ }
+  }
+
+  function loadLocation() {
+    try { return JSON.parse(localStorage.getItem("fivefold-location")); }
+    catch (e) { return null; }
+  }
+
+  function saveLocation(loc) {
+    try { localStorage.setItem("fivefold-location", JSON.stringify(loc)); }
+    catch (e) { /* ignore */ }
+  }
+
+  function fetchTimesByCoords(lat, lon) {
+    var ts = Math.floor(Date.now() / 1000);
+    var url = "https://api.aladhan.com/v1/timings/" + ts +
+      "?latitude=" + lat + "&longitude=" + lon + "&method=" + TIMES_METHOD;
+    return fetch(url).then(function (res) { return res.json(); })
+      .then(function (json) { return json.data.timings; });
+  }
+
+  function fetchTimesByCity(city, country) {
+    var url = "https://api.aladhan.com/v1/timingsByCity?city=" + encodeURIComponent(city) +
+      "&country=" + encodeURIComponent(country) + "&method=" + TIMES_METHOD;
+    return fetch(url).then(function (res) { return res.json(); })
+      .then(function (json) { return json.data.timings; });
+  }
+
+  function setTimesStatus(text) {
+    var el = document.getElementById("times-status");
+    if (!text) {
+      el.classList.add("hidden");
+    } else {
+      el.classList.remove("hidden");
+      el.textContent = text;
+    }
+  }
+
+  function showManualForm(message) {
+    setTimesStatus(message || "");
+    document.getElementById("manual-location-form").classList.remove("hidden");
+  }
+
+  function renderTimesOnArc() {
+    if (!prayerTimes) return;
+    PRAYERS.forEach(function (p) {
+      var raw = prayerTimes[p.name];
+      if (!raw) return;
+      var el = document.querySelector('[data-prayer="' + p.id + '"] .node-time');
+      if (el) el.textContent = raw.split(" ")[0];
+    });
+  }
+
+  function applyTimes(timings) {
+    prayerTimes = timings;
+    cacheTimes(timings);
+    renderTimesOnArc();
+    setTimesStatus("");
+    document.getElementById("change-location-btn").classList.remove("hidden");
+    document.getElementById("manual-location-form").classList.add("hidden");
+  }
+
+  function handleTimesError() {
+    if (!navigator.onLine) {
+      setTimesStatus("You're offline — prayer times will load once you're back online.");
+    } else {
+      showManualForm("Could not load prayer times. Enter your city instead.");
+    }
+  }
+
+  function initPrayerTimes() {
+    var cached = loadCachedTimes();
+    if (cached) { applyTimes(cached); return; }
+
+    var loc = loadLocation();
+
+    if (loc && loc.mode === "manual") {
+      setTimesStatus("Loading prayer times…");
+      fetchTimesByCity(loc.city, loc.country).then(applyTimes).catch(handleTimesError);
+      return;
+    }
+
+    if (loc && loc.mode === "gps" && loc.lat) {
+      setTimesStatus("Loading prayer times…");
+      fetchTimesByCoords(loc.lat, loc.lon).then(applyTimes).catch(handleTimesError);
+      return;
+    }
+
+    if (!("geolocation" in navigator)) {
+      showManualForm("Enter your city for prayer times.");
+      return;
+    }
+
+    setTimesStatus("Finding your location…");
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        var newLoc = { mode: "gps", lat: pos.coords.latitude, lon: pos.coords.longitude };
+        saveLocation(newLoc);
+        setTimesStatus("Loading prayer times…");
+        fetchTimesByCoords(newLoc.lat, newLoc.lon).then(applyTimes).catch(handleTimesError);
+      },
+      function () { showManualForm("Location unavailable — enter your city instead."); },
+      { timeout: 8000 }
+    );
+  }
+
+  function initLocationForm() {
+    var form = document.getElementById("manual-location-form");
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var city = document.getElementById("city-input").value.trim();
+      var country = document.getElementById("country-input").value.trim();
+      if (!city || !country) return;
+      setTimesStatus("Loading prayer times…");
+      fetchTimesByCity(city, country)
+        .then(function (timings) {
+          saveLocation({ mode: "manual", city: city, country: country });
+          applyTimes(timings);
+        })
+        .catch(function () {
+          if (!navigator.onLine) { handleTimesError(); return; }
+          setTimesStatus("Could not find that city. Check spelling and try again.");
+        });
+    });
+
+    document.getElementById("change-location-btn").addEventListener("click", function () {
+      document.getElementById("manual-location-form").classList.remove("hidden");
+    });
+  }
+
   // ---------- PWA install ----------
 
   var deferredPrompt = null;
@@ -366,5 +518,7 @@
     saveData();
     render();
     initOnboarding();
+    initLocationForm();
+    initPrayerTimes();
   });
 })();
