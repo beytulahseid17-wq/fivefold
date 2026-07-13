@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fivefold — track your salah, build your deen</title>
+<meta name="description" content="A free, offline salah tracker. Log your five daily prayers, build a streak, and grow steady in your deen — no account needed.">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#12102B">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="onboarding" class="modal-backdrop hidden">
+  <div class="modal">
+    <p class="eyebrow">Before we start</p>
+    <h2>Which prayer do you struggle with most?</h2>
+    <p class="modal-sub">We'll keep a quiet focus on it — everything else still gets tracked.</p>
+    <div class="onboarding-options" id="onboarding-options"></div>
+    <button class="text-btn" id="skip-onboarding">I'd rather not say</button>
+  </div>
+</div>
+
+<header class="site-header">
+  <span class="wordmark">Fivefold</span>
+  <button id="install-btn" class="ghost-btn hidden" type="button">Install app</button>
+</header>
+
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">A free, offline salah tracker</p>
+    <h1>Track your salah.<br>Build your deen.</h1>
+
+    <div class="arc-wrap">
+      <svg id="arc-svg" viewBox="0 0 400 220" role="group" aria-label="Today's five prayers">
+        <line class="horizon" x1="0" y1="150" x2="400" y2="150"></line>
+        <path id="day-path" class="day-path" d="M40,140 C85,45 125,20 160,35 C205,55 225,60 260,60 C300,60 330,90 355,140"></path>
+        <line id="night-path" class="night-path" x1="355" y1="140" x2="375" y2="185"></line>
+        <g id="stars"></g>
+        <g id="nodes"></g>
+      </svg>
+    </div>
+
+    <p class="hero-hint">Tap a prayer once for on time, again for late, again to clear it.</p>
+  </section>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="week-section">
+    <h2>This week</h2>
+    <div id="week-grid" class="week-grid"></div>
+  </section>
+
+  <section class="guides-teaser">
+    <p class="eyebrow">Coming soon</p>
+    <h2>Short guides on staying consistent</h2>
+    <p>Practical, no-guilt reading on the habits that hold everything else up — starting with the prayer you tap most.</p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Fivefold saves everything on your device only. Nothing is uploaded, nothing is shared.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
